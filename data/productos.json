@@ -1,0 +1,54 @@
+[
+  {
+    "nombre": "Arroz Diana 1kg",
+    "precio_ves": 18500.0
+  },
+  {
+    "nombre": "Leche Parmalat 1L",
+    "precio_ves": 28000.0
+  },
+  {
+    "nombre": "Pan de sándwich Bimbo",
+    "precio_ves": 35000.0
+  },
+  {
+    "nombre": "Harina P.A.N. 1kg",
+    "precio_ves": 21000.0
+  },
+  {
+    "nombre": "Azúcar Morena 1kg",
+    "precio_ves": 19000.0
+  },
+  {
+    "nombre": "Pasta Capri 500g",
+    "precio_ves": 14500.0
+  },
+  {
+    "nombre": "Atún Margarita lata 170g",
+    "precio_ves": 38000.0
+  },
+  {
+    "nombre": "Café Fama de América 200g",
+    "precio_ves": 47000.0
+  },
+  {
+    "nombre": "Jabón de baño Dove x3",
+    "precio_ves": 62000.0
+  },
+  {
+    "nombre": "Papel higiénico x4",
+    "precio_ves": 44000.0
+  },
+  {
+    "nombre": "Detergente Ariel 500g",
+    "precio_ves": 58000.0
+  },
+  {
+    "nombre": "Desodorante Rexona",
+    "precio_ves": 71000.0
+  },
+  {
+    "nombre": "Jugo Hit 1L",
+    "precio_ves": 26000.0
+  }
+]
