@@ -2,55 +2,28 @@
 import os
 import pandas as pd
 from datetime import datetime
-from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, send_file
-from supabase import create_client, Client
+from fpdf import FPDF
 
+app = Flask(__name__, 
+            template_folder="../templates", 
+            static_folder="../static")
 
-# ── CONFIGURACIÓN FLASK ──────────────────────────────────────────────────────
-app = Flask(__name__, template_folder="../templates", static_folder="../static")
-
+# Configuración de seguridad y rutas temporales
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-# ── CONFIGURACIÓN DE SUPABASE ────────────────────────────────────────────────
-# 1. Cargar las variables desde el archivo .env
-load_dotenv()
-
-# 2. Extraer los valores usando os.getenv
-# Si no encuentra la variable, devuelve None por seguridad
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-# 3. Inicializar el cliente (ahora es dinámico)
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
-# Directorio para archivos temporales (como el PDF)
-"""BASE_DIR   = os.path.dirname(os.path.abspath(__file__))"""
 UPLOAD_DIR = "/tmp"
-PDF_PATH   = os.path.join(UPLOAD_DIR, "factura.pdf")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+PDF_PATH = os.path.join(UPLOAD_DIR, "factura_supermercado.pdf")
 
-try:
-    from fpdf import FPDF
-    FPDF_AVAILABLE = True
-except ImportError:
-    FPDF_AVAILABLE = False
+# ── RUTAS ───────────────────────────────────────────────────────────────────
 
-# ── HELPERS (Ahora hablan con Supabase) ──────────────────────────────────────
-def get_all_productos():
-    """Trae todos los productos de la nube, ordenados por ID."""
-    response = supabase.table("productos").select("*").order("id").execute()
-    return response.data
-
-# ── RUTAS PRINCIPALES ────────────────────────────────────────────────────────
 @app.route("/", methods=["GET"])
 def index():
-    # Al cargar la página, traemos los datos de la nube
-    productos = get_all_productos()
-    return render_template("index.html", productos=productos)
+    # Ahora solo cargamos la página. La lista de productos empezará vacía en el navegador.
+    return render_template("index.html")
 
 @app.route("/upload", methods=["POST"])
 def upload():
+    """Procesa el Excel y devuelve el JSON al navegador (sin guardar nada)"""
     file = request.files.get("archivo")
     if not file or not file.filename.endswith(".xlsx"):
         return jsonify({"error": "Sube un archivo .xlsx válido."}), 400
@@ -63,96 +36,89 @@ def upload():
         col_precio = next((c for c in df.columns if "precio" in c), None)
 
         if not col_nombre or not col_precio:
-            return jsonify({"error": "Columnas 'Producto' y 'Precio' no encontradas."}), 400
+            return jsonify({"error": "No se encontraron las columnas 'Producto' y 'Precio'."}), 400
 
-        # Preparamos la lista para insertar en Supabase
-        lista_productos = []
+        productos = []
         for _, row in df.iterrows():
             nombre = str(row[col_nombre]).strip()
             try:
                 precio_ves = float(str(row[col_precio]).replace(",", ".").replace(" ", ""))
-            except ValueError:
+            except:
                 precio_ves = 0.0
             
             if nombre and nombre.lower() != "nan":
-                lista_productos.append({"nombre": nombre, "precio_ves": precio_ves})
+                productos.append({"nombre": nombre, "precio_ves": precio_ves})
 
-        # 1. Limpiamos la tabla vieja (para que sea una carga limpia como antes)
-        supabase.table("productos").delete().neq("id", 0).execute()
-        
-        # 2. Insertamos la nueva lista en la nube
-        if lista_productos:
-            supabase.table("productos").insert(lista_productos).execute()
-
-        return jsonify({"ok": True, "total": len(lista_productos)})
+        return jsonify(productos)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/productos", methods=["GET"])
-def api_productos():
-    return jsonify(get_all_productos())
-
-@app.route("/api/productos/<int:idx>", methods=["PATCH"])
-def api_update_precio(idx: int):
-    """Actualiza el precio usando el ID de la fila en Supabase."""
-    data = request.get_json(force=True)
-    productos = get_all_productos()
-    
-    if idx < 0 or idx >= len(productos):
-        return jsonify({"error": "Índice inválido"}), 404
-
-    # Obtenemos el ID real de la base de datos para ese índice
-    db_id = productos[idx]['id']
-    nuevo_precio = float(data.get("precio_ves", 0))
-
-    # Actualizamos en la nube
-    supabase.table("productos").update({"precio_ves": nuevo_precio}).eq("id", db_id).execute()
-    
-    return jsonify({"ok": True})
-
-@app.route("/api/productos/<int:idx>", methods=["DELETE"])
-def api_delete_producto(idx: int):
-    """Elimina un producto de la nube."""
-    productos = get_all_productos()
-    if idx < 0 or idx >= len(productos):
-        return jsonify({"error": "Índice inválido"}), 404
-
-    db_id = productos[idx]['id']
-    supabase.table("productos").delete().eq("id", db_id).execute()
-    
-    return jsonify({"ok": True})
-
-# ── PDF (Misma lógica, pero con datos de Supabase) ───────────────────────────
-@app.route("/descargar-pdf")
+@app.route("/descargar-pdf", methods=["POST"])
 def descargar_pdf():
-    if not FPDF_AVAILABLE:
-        return "Instala fpdf2 para generar PDFs.", 500
-    
-    tasa = float(request.args.get("tasa", 1))
-    productos = get_all_productos()
-    
+    """Recibe la lista del navegador y genera el PDF al vuelo"""
+    data = request.get_json()
+    productos = data.get("productos", [])
+    tasa = float(data.get("tasa", 1))
+
     if not productos:
-        return "No hay productos.", 400
+        return jsonify({"error": "No hay productos para generar el PDF"}), 400
 
-    _generar_pdf(productos, tasa)
-    return send_file(PDF_PATH, as_attachment=True, download_name="factura.pdf")
+    _generar_pdf_logic(productos, tasa)
+    return send_file(PDF_PATH, as_attachment=True, download_name="factura_supermercado.pdf")
 
-def _generar_pdf(productos, tasa):
+# ── LÓGICA DEL PDF (Diseño Original) ────────────────────────────────────────
+
+def _generar_pdf_logic(productos, tasa):
     pdf = FPDF()
     pdf.add_page()
-    # ... (Tu lógica de PDF se mantiene igual, ya que 'productos' es la misma lista de dicts)
-    # Solo asegúrate de llamar a pdf.output(PDF_PATH) al final
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 10, "FACTURA DE SUPERMERCADO", ln=True, align='C')
-    pdf.ln(10)
     
-    # Ejemplo rápido de tabla en PDF
+    # Encabezado oscuro
+    pdf.set_fill_color(30, 30, 30)
+    pdf.rect(0, 0, 210, 40, style="F")
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_xy(10, 10)
+    pdf.cell(0, 10, "CALCULADORA DE SUPERMERCADO", align="L")
+    
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_xy(10, 25)
+    pdf.cell(0, 6, f"Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M')}", align="L")
+    pdf.cell(0, 6, f"Tasa: {tasa:,.2f} VES/USD", align="R")
+    pdf.ln(20)
+
+    # Tabla
+    pdf.set_text_color(0, 0, 0)
+    col_w = [100, 45, 45]
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_fill_color(240, 240, 240)
+    
+    headers = ["Producto", "Precio VES", "Precio USD"]
+    for h, w in zip(headers, col_w):
+        pdf.cell(w, 10, h, border=1, align="C", fill=True)
+    pdf.ln()
+
+    pdf.set_font("Helvetica", "", 9)
+    total_ves = 0
     for p in productos:
-        linea = f"{p['nombre']} - {p['precio_ves']:,.2f} VES (${p['precio_ves']/tasa:,.2f})"
-        pdf.cell(0, 10, linea, ln=True)
-    
+        precio_ves = p['precio_ves']
+        precio_usd = precio_ves / tasa if tasa > 0 else 0
+        total_ves += precio_ves
+        
+        pdf.cell(col_w[0], 8, p['nombre'][:50], border=1)
+        pdf.cell(col_w[1], 8, f"{precio_ves:,.2f}", border=1, align="R")
+        pdf.cell(col_w[2], 8, f"$ {precio_usd:,.2f}", border=1, align="R")
+        pdf.ln()
+
+    # Totales
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_fill_color(30, 30, 30)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(col_w[0], 10, "TOTAL", border=1, align="C", fill=True)
+    pdf.cell(col_w[1], 10, f"{total_ves:,.2f} Bs", border=1, align="R", fill=True)
+    pdf.cell(col_w[2], 10, f"$ {total_ves/tasa:,.2f}", border=1, align="R", fill=True)
+
     pdf.output(PDF_PATH)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
