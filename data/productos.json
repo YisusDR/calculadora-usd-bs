@@ -4,12 +4,12 @@
     "precio_ves": 18500.0
   },
   {
-    "nombre": "Leche Parmalat 1L",
-    "precio_ves": 28000.0
+    "nombre": "Aceite Mazeite 900ml",
+    "precio_ves": 42000.0
   },
   {
-    "nombre": "Pan de sándwich Bimbo",
-    "precio_ves": 35000.0
+    "nombre": "Leche Parmalat 1L",
+    "precio_ves": 28000.0
   },
   {
     "nombre": "Harina P.A.N. 1kg",
@@ -28,6 +28,10 @@
     "precio_ves": 38000.0
   },
   {
+    "nombre": "Mayonesa Mavesa 445g",
+    "precio_ves": 55000.0
+  },
+  {
     "nombre": "Café Fama de América 200g",
     "precio_ves": 47000.0
   },
@@ -42,10 +46,6 @@
   {
     "nombre": "Detergente Ariel 500g",
     "precio_ves": 58000.0
-  },
-  {
-    "nombre": "Desodorante Rexona",
-    "precio_ves": 71000.0
   },
   {
     "nombre": "Jugo Hit 1L",
