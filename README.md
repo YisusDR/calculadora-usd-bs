@@ -6,7 +6,7 @@ Desplegada en **Vercel** como una arquitectura Serverless.
 
 ---
 
-## ✨ Características Principales
+## Características Principales
 
 * **Privacidad por Diseño (Stateless):** Los datos se procesan en la memoria del navegador (`localStorage` y arrays de JS). No se guarda información en bases de datos, permitiendo que múltiples usuarios usen la app al mismo tiempo de forma 100% independiente y privada.
 * **Procesamiento de Excel:** Carga archivos `.xlsx` mediante Drag & Drop. El backend extrae automáticamente los productos y precios usando `pandas`.
@@ -17,7 +17,7 @@ Desplegada en **Vercel** como una arquitectura Serverless.
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 El proyecto está diseñado para funcionar como **Serverless Functions** en Vercel:
 
@@ -32,6 +32,19 @@ calculadora-usd-bs/
 ├── requirements.txt     # Dependencias de Python
 └── vercel.json          # Reglas de enrutamiento para el despliegue
 ```
+
+## Tecnologías Utilizadas
+- Frontend: HTML5, CSS3, Vanilla JavaScript, Chart.js.
+
+- Backend: Python 3, Flask.
+
+- Procesamiento de Datos: Pandas, Openpyxl.
+
+- Generación de Reportes: FPDF2.
+
+- Despliegue: Vercel (Serverless).
+
+
 ## Instalación
 
 ```bash
@@ -72,12 +85,8 @@ Luego abre: **http://localhost:5000**
 
 Las columnas se detectan automáticamente (acepta variantes como `nombre`, `precio_ves`, etc.)
 
-## API interna
+(Puedes descargar la plantilla de ejemplo directamente desde la aplicación web).
+https://calculadora-usd-1189ajp0r-yisusdrs-projects.vercel.app
 
-| Método   | Ruta                   | Descripción                      |
-|----------|------------------------|----------------------------------|
-| `POST`   | `/upload`              | Sube y procesa el .xlsx          |
-| `GET`    | `/api/productos`       | Lista todos los productos        |
-| `PATCH`  | `/api/productos/<idx>` | Actualiza `precio_ves` de un ítem |
-| `DELETE` | `/api/productos/<idx>` | Elimina un ítem                  |
-| `GET`    | `/descargar-pdf?tasa=` | Genera y descarga la factura PDF |
+👨‍💻 Autor
+Jesús (YisusDR) - Ingeniería y Desarrollo
