@@ -561,7 +561,7 @@
           <div style="display: flex; flex-direction: column; gap: 8px">
             <div class="stat-card">
               <div class="stat-label">Total USD</div>
-              <div class="stat-value" id="statUSD">$ 0.0000</div>
+              <div class="stat-value" id="statUSD">$ 0.00</div>
               <div class="stat-sub" id="statUSDsub">— productos</div>
             </div>
             <div class="stat-card">
@@ -579,6 +579,33 @@
 
         <!-- Descargar PDF -->
         <div class="sidebar-section" style="margin-top: auto">
+          <a
+            href="/static/plantilla.xlsx"
+            download="plantilla_supermercado.xlsx"
+            class="btn-descarga-plantilla"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              width: 100%;
+              padding: 10px;
+              margin-bottom: 12px;
+              background-color: transparent;
+              color: #c4f000; /* Tu verde neón */
+              border: 1px solid #c4f000;
+              border-radius: 8px;
+              text-decoration: none;
+              font-family: var(--font-mono);
+              font-size: 0.9rem;
+              transition: all 0.3s;
+            "
+            onmouseover="this.style.backgroundColor = 'rgba(196, 240, 0, 0.1)'"
+            onmouseout="this.style.backgroundColor = 'transparent'"
+          >
+            <i class="bi bi-file-earmark-excel"></i> Descargar plantilla de
+            Excel
+          </a>
           <button
             class="btn-accent"
             id="btnPDF"
@@ -831,7 +858,7 @@
       }
 
       function actualizarStats(ves, usd, count) {
-        document.getElementById("statUSD").textContent = "$ " + usd.toFixed(4);
+        document.getElementById("statUSD").textContent = "$ " + usd.toFixed(2);
         document.getElementById("statUSDsub").textContent =
           `${count} producto${count !== 1 ? "s" : ""}`;
         document.getElementById("statVES").textContent = fmt(ves) + " Bs";
