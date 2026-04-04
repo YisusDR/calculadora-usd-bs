@@ -1,21 +1,37 @@
-# Calculadora Supermercado VES/USD
+# 🛒 SuperCalc VES/USD - Calculadora de Supermercado
 
-Aplicación web local con Flask para gestionar listas de compras con conversión automática Bolívares → Dólares.
+Una aplicación web rápida, privada y sin estado (stateless) para procesar listas de compras en Excel, calcular conversiones de Bolívares (VES) a Dólares (USD) en tiempo real, y generar facturas en PDF.
 
-## Estructura del proyecto
+Desplegada en **Vercel** como una arquitectura Serverless.
 
-```
-supermarket-calc/
-├── app.py                  # Backend Flask (rutas + lógica PDF)
-├── requirements.txt        # Dependencias Python
-├── generar_demo.py         # Genera un .xlsx de ejemplo
+---
+
+## ✨ Características Principales
+
+* **Privacidad por Diseño (Stateless):** Los datos se procesan en la memoria del navegador (`localStorage` y arrays de JS). No se guarda información en bases de datos, permitiendo que múltiples usuarios usen la app al mismo tiempo de forma 100% independiente y privada.
+* **Procesamiento de Excel:** Carga archivos `.xlsx` mediante Drag & Drop. El backend extrae automáticamente los productos y precios usando `pandas`.
+* **Cálculos en Tiempo Real:** Edición de precios *inline* directamente en la tabla con actualización instantánea de totales y gráficas.
+* **Visualización de Datos:** Gráfica de dona interactiva (Chart.js) para analizar la distribución de gastos.
+* **Generación de PDF:** Creación dinámica de facturas en formato PDF lista para descargar (`fpdf2`).
+* **Plantilla Descargable:** Opción integrada para descargar el formato base de Excel requerido.
+
+---
+
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto está diseñado para funcionar como **Serverless Functions** en Vercel:
+
+```text
+calculadora-usd-bs/
+├── api/
+│   └── index.py         # Backend (Flask Serverless: procesa Excel y PDF)
 ├── templates/
-│   └── index.html          # UI completa (Bootstrap 5 + JS vanilla)
-└── data/
-    ├── productos.json      # Base de datos temporal (auto-generada)
-    └── factura.pdf         # PDF exportado (auto-generado)
+│   └── index.html       # Frontend (UI + Lógica de estado en Vanilla JS)
+├── static/
+│   └── plantilla.xlsx   # Archivo de ejemplo descargable
+├── requirements.txt     # Dependencias de Python
+└── vercel.json          # Reglas de enrutamiento para el despliegue
 ```
-
 ## Instalación
 
 ```bash
